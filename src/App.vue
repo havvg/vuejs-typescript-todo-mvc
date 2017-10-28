@@ -19,7 +19,7 @@
                         :class="{ completed: todo.completed, editing: todo == editedTodo }">
 
                         <div class="view">
-                            <input class="toggle" type="checkbox" v-model="todo.completed">
+                            <input class="toggle" type="checkbox" @change="toggleTodo(todo)" :checked="todo.completed">
                             <label @dblclick="editTodo(todo)">{{ todo.title }}</label>
                             <button class="destroy" @click="removeTodo(todo)"></button>
                         </div>
@@ -58,7 +58,7 @@
 import { Component, Vue, Watch } from 'vue-property-decorator'
 
 import Todo from './Todo'
-import TodoStorage from './TodoStorage'
+import TodoStore from './TodoStore'
 
 Vue.filter('pluralize', (n: number): string =>  {
   return n === 1 ? 'item' : 'items'
@@ -70,31 +70,12 @@ Vue.directive('todo-focus', (el, binding) => {
   }
 })
 
-const filters = {
-    all(todos: Todo[]): Todo[] {
-        return todos
-    },
-
-    active(todos: Todo[]): Todo[] {
-        return todos.filter((todo: Todo) => {
-            return !todo.completed
-        })
-    },
-
-    completed(todos: Todo[]): Todo[] {
-        return todos.filter((todo: Todo) => {
-            return todo.completed
-        })
-    }
-}
-
 @Component({
     name: 'app'
 })
 export default class App extends Vue {
-    private storage: TodoStorage = new TodoStorage()
+    private store = TodoStore()
 
-    private todos: Todo[] = this.storage.fetch()
     private visibility: string = 'all'
 
     private newTodo: string = ''
@@ -107,12 +88,16 @@ export default class App extends Vue {
         window.addEventListener('hashchange', this.onHashChange)
     }
 
+    get todos(): Todo[] {
+        return this.store.getters.all
+    }
+
     get filteredTodos(): Todo[] {
-        return filters[this.visibility](this.todos)
+        return this.store.getters[this.visibility]
     }
 
     get remaining(): number {
-        return filters.active(this.todos).length
+        return this.store.getters.active.length
     }
 
     get allDone(): boolean {
@@ -120,9 +105,7 @@ export default class App extends Vue {
     }
 
     set allDone(value: boolean) {
-        this.todos.forEach((todo: Todo) => {
-            todo.completed = value
-        })
+        this.store.commit('toggleAll', value)
     }
 
     addTodo() {
@@ -131,17 +114,13 @@ export default class App extends Vue {
             return
         }
 
-        this.todos.push({
-            id: this.storage.nextUid(),
-            title: title,
-            completed: false
-        })
+        this.store.commit('add', title)
 
         this.newTodo = ''
     }
 
-    removeTodo(todo) {
-        this.todos.splice(this.todos.indexOf(todo), 1)
+    removeTodo(todo: Todo) {
+        this.store.commit('remove', todo)
     }
 
     editTodo(todo: Todo) {
@@ -149,7 +128,7 @@ export default class App extends Vue {
         this.editedTodo = todo
     }
 
-    doneEdit(todo) {
+    doneEdit(todo: Todo) {
         if (!this.editedTodo) {
             return
         }
@@ -157,29 +136,30 @@ export default class App extends Vue {
         this.editedTodo = null
 
         todo.title = todo.title.trim()
-        if (!todo.title) {
+        if (todo.title) {
+            this.store.commit('update', todo)
+        } else {
             this.removeTodo(todo)
         }
     }
 
-    cancelEdit(todo) {
+    cancelEdit(todo: Todo) {
         this.editedTodo = null
         todo.title = this.beforeEditCache
     }
 
-    removeCompleted() {
-        this.todos = filters.active(this.todos)
+    toggleTodo(todo: Todo) {
+        this.store.commit('toggle', todo)
     }
 
-    @Watch('todos', { deep: true})
-    onTodosChange() {
-        this.storage.save(this.todos)
+    removeCompleted() {
+        this.store.commit('removeCompleted')
     }
 
     onHashChange() {
         const visibility = window.location.hash.replace(/#\/?/, '')
 
-        if (filters[visibility]) {
+        if (this.store.getters[visibility]) {
             this.visibility = visibility
         } else {
             window.location.hash = ''
