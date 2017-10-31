@@ -4,13 +4,17 @@ import StoragePlugin from './StoragePlugin'
 import Todo from './Todo'
 import TodoStorage from './TodoStorage'
 
+const createQuery = (todos: Todo[]) => todos.map(todo => Object.freeze(Object.assign({}, todo)))
+const findById = (todos: Todo[], id: number) => todos.find(todo => todo.id === id)
+
 export default function TodoStore() {
     return new Vuex.Store({
         plugins: [StoragePlugin()],
 
         state: {
             uid: 1,
-            todos: []
+            todos: <Todo[]>[],
+            query: <Todo[]>[],
         },
 
         mutations: {
@@ -18,50 +22,65 @@ export default function TodoStore() {
                 state.todos.push({
                     id: state.uid++,
                     title: title,
-                    completed: false
+                    completed: false,
                 })
+
+                state.query = createQuery(state.todos)
             },
 
             remove(state, todo: Todo) {
                 state.todos.splice(state.todos.indexOf(todo), 1)
+
+                state.query = createQuery(state.todos)
             },
 
             replace(state, todos: Todo[]) {
-                state.todos = todos;
+                state.todos = todos
                 state.uid = state.todos.length
+
+                state.query = createQuery(state.todos)
             },
 
-            update(state, todo: Todo) {
-                // Objects are references, so this is noop.
-                // However it will trigger any plugin attached.
+            update(state, payload: { todo: Todo, title: string }) {
+                const entry = findById(state.todos, payload.todo.id)
+
+                entry.title = payload.title
+
+                state.query = createQuery(state.todos)
             },
 
             toggle(state, todo: Todo) {
-                todo.completed = !todo.completed
+                const entry = findById(state.todos, todo.id)
+
+                entry.completed = !todo.completed
+
+                state.query = createQuery(state.todos)
             },
 
             toggleAll(state, value: boolean) {
-                state.todos.forEach((todo: Todo) => {
-                    todo.completed = value
-                })
+                state.todos.forEach(todo => todo.completed = value)
+
+                state.query = createQuery(state.todos)
             },
 
             removeCompleted(state) {
-                state.todos = this.getters.active
+                state.todos = state.todos.filter(todo => !todo.completed)
+
+                state.query = createQuery(state.todos)
             }
         },
 
         getters: {
             all(state): Todo[] {
-                return state.todos;
+                return state.query
             },
 
-            active(state): Todo[] {
-                return state.todos.filter(todo => !todo.completed)
+            active(state, getters): Todo[] {
+                return getters.all.filter(todo => !todo.completed)
             },
 
-            completed(state): Todo[] {
-                return state.todos.filter(todo => todo.completed)
+            completed(state, getters): Todo[] {
+                return getters.all.filter(todo => todo.completed)
             },
 
             remaining(state, getters): number {

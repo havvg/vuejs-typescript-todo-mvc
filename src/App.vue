@@ -25,11 +25,11 @@
                         </div>
 
                         <input class="edit" type="text"
-                        v-model="todo.title"
+                        v-model="editedTitle"
                         v-todo-focus="todo == editedTodo"
                         @blur="doneEdit(todo)"
                         @keyup.enter="doneEdit(todo)"
-                        @keyup.esc="cancelEdit(todo)">
+                        @keyup.esc="resetEditor()">
                     </li>
                 </ul>
             </section>
@@ -97,7 +97,9 @@ export default class App extends Vue {
     private visibility: string = 'all'
 
     private newTodo: string = ''
+
     private editedTodo: Todo|null = null
+    private editedTitle: string|null = null
     private beforeEditCache: string|null = null
 
     get filteredTodos(): Todo[] {
@@ -113,7 +115,7 @@ export default class App extends Vue {
     }
 
     addTodo() {
-        const title = this.newTodo && this.newTodo.trim()
+        const title = this.newTodo.trim()
         if (!title) {
             return
         }
@@ -126,6 +128,7 @@ export default class App extends Vue {
     editTodo(todo: Todo) {
         this.beforeEditCache = todo.title
         this.editedTodo = todo
+        this.editedTitle = todo.title
     }
 
     doneEdit(todo: Todo) {
@@ -133,19 +136,21 @@ export default class App extends Vue {
             return
         }
 
-        this.editedTodo = null
+        const title = this.editedTitle.trim()
 
-        todo.title = todo.title.trim()
-        if (todo.title) {
-            this.$store.commit('update', todo)
+        if (title) {
+            this.$store.commit('update', { todo, title })
         } else {
             this.removeTodo(todo)
         }
+
+        this.resetEditor()
     }
 
-    cancelEdit(todo: Todo) {
+    resetEditor() {
+        this.beforeEditCache = null
         this.editedTodo = null
-        todo.title = this.beforeEditCache
+        this.editedTitle = null
     }
 
     created() {
