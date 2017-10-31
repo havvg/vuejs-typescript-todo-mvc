@@ -58,7 +58,6 @@
 import { Component, Vue, Watch } from 'vue-property-decorator'
 
 import Todo from './Todo'
-import TodoStore from './TodoStore'
 
 Vue.filter('pluralize', (n: number): string =>  {
   return n === 1 ? 'item' : 'items'
@@ -74,8 +73,6 @@ Vue.directive('todo-focus', (el, binding) => {
     name: 'app'
 })
 export default class App extends Vue {
-    private store = TodoStore()
-
     private visibility: string = 'all'
 
     private newTodo: string = ''
@@ -89,15 +86,15 @@ export default class App extends Vue {
     }
 
     get todos(): Todo[] {
-        return this.store.getters.all
+        return this.$store.getters.all
     }
 
     get filteredTodos(): Todo[] {
-        return this.store.getters[this.visibility]
+        return this.$store.getters[this.visibility]
     }
 
     get remaining(): number {
-        return this.store.getters.active.length
+        return this.$store.getters.active.length
     }
 
     get allDone(): boolean {
@@ -105,7 +102,7 @@ export default class App extends Vue {
     }
 
     set allDone(value: boolean) {
-        this.store.commit('toggleAll', value)
+        this.$store.commit('toggleAll', value)
     }
 
     addTodo() {
@@ -114,13 +111,13 @@ export default class App extends Vue {
             return
         }
 
-        this.store.commit('add', title)
+        this.$store.commit('add', title)
 
         this.newTodo = ''
     }
 
     removeTodo(todo: Todo) {
-        this.store.commit('remove', todo)
+        this.$store.commit('remove', todo)
     }
 
     editTodo(todo: Todo) {
@@ -137,7 +134,7 @@ export default class App extends Vue {
 
         todo.title = todo.title.trim()
         if (todo.title) {
-            this.store.commit('update', todo)
+            this.$store.commit('update', todo)
         } else {
             this.removeTodo(todo)
         }
@@ -149,17 +146,17 @@ export default class App extends Vue {
     }
 
     toggleTodo(todo: Todo) {
-        this.store.commit('toggle', todo)
+        this.$store.commit('toggle', todo)
     }
 
     removeCompleted() {
-        this.store.commit('removeCompleted')
+        this.$store.commit('removeCompleted')
     }
 
     onHashChange() {
         const visibility = window.location.hash.replace(/#\/?/, '')
 
-        if (this.store.getters[visibility]) {
+        if (this.$store.getters[visibility]) {
             this.visibility = visibility
         } else {
             window.location.hash = ''
