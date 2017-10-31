@@ -62,6 +62,10 @@ export default function TodoStore() {
 
             completed(state): Todo[] {
                 return state.todos.filter(todo => todo.completed)
+            },
+
+            remaining(state, getters): number {
+                return getters.active.length
             }
         }
     })

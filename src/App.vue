@@ -56,23 +56,31 @@
 
 <script lang="ts">
 import { Component, Vue, Watch } from 'vue-property-decorator'
+import { Getter, Mutation } from 'vuex-class'
 
 import Todo from './Todo'
 
 Vue.filter('pluralize', (n: number): string =>  {
-  return n === 1 ? 'item' : 'items'
+    return n === 1 ? 'item' : 'items'
 })
 
 Vue.directive('todo-focus', (el, binding) => {
-  if (binding.value) {
-      el.focus()
-  }
+    if (binding.value) {
+        el.focus()
+    }
 })
 
 @Component({
     name: 'app'
 })
 export default class App extends Vue {
+    @Getter('all') todos
+    @Getter remaining
+
+    @Mutation('toggle') toggleTodo
+    @Mutation('remove') removeTodo
+    @Mutation removeCompleted
+
     private visibility: string = 'all'
 
     private newTodo: string = ''
@@ -85,16 +93,8 @@ export default class App extends Vue {
         window.addEventListener('hashchange', this.onHashChange)
     }
 
-    get todos(): Todo[] {
-        return this.$store.getters.all
-    }
-
     get filteredTodos(): Todo[] {
         return this.$store.getters[this.visibility]
-    }
-
-    get remaining(): number {
-        return this.$store.getters.active.length
     }
 
     get allDone(): boolean {
@@ -114,10 +114,6 @@ export default class App extends Vue {
         this.$store.commit('add', title)
 
         this.newTodo = ''
-    }
-
-    removeTodo(todo: Todo) {
-        this.$store.commit('remove', todo)
     }
 
     editTodo(todo: Todo) {
@@ -143,14 +139,6 @@ export default class App extends Vue {
     cancelEdit(todo: Todo) {
         this.editedTodo = null
         todo.title = this.beforeEditCache
-    }
-
-    toggleTodo(todo: Todo) {
-        this.$store.commit('toggle', todo)
-    }
-
-    removeCompleted() {
-        this.$store.commit('removeCompleted')
     }
 
     onHashChange() {

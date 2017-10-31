@@ -27,6 +27,7 @@
     "vue-property-decorator": "^6.0.0",
     "vue-template-compiler": "^2.4.4",
     "vue-ts-loader": "0.0.3",
+    "vuex-class": "^0.3.0",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
   }
