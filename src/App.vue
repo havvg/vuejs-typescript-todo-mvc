@@ -58,6 +58,12 @@
 import { Component, Vue, Watch } from 'vue-property-decorator'
 import { Getter, Mutation } from 'vuex-class'
 
+import { Observable } from 'rxjs/Observable'
+import 'rxjs/add/observable/fromEvent'
+import 'rxjs/add/operator/map'
+import 'rxjs/add/operator/startWith'
+import 'rxjs/add/operator/shareReplay'
+
 import Todo from './Todo'
 
 Vue.filter('pluralize', (n: number): string =>  {
@@ -71,7 +77,14 @@ Vue.directive('todo-focus', (el, binding) => {
 })
 
 @Component({
-    name: 'app'
+    name: 'app',
+    subscriptions: {
+        hashChange: Observable.fromEvent(window, 'hashchange')
+            .map(() => window.location.hash)
+            .startWith(window.location.hash)
+            .shareReplay(1)
+        ,
+    },
 })
 export default class App extends Vue {
     @Getter('all') todos
@@ -86,12 +99,6 @@ export default class App extends Vue {
     private newTodo: string = ''
     private editedTodo: Todo|null = null
     private beforeEditCache: string|null = null
-
-    constructor() {
-        super()
-
-        window.addEventListener('hashchange', this.onHashChange)
-    }
 
     get filteredTodos(): Todo[] {
         return this.$store.getters[this.visibility]
@@ -141,16 +148,18 @@ export default class App extends Vue {
         todo.title = this.beforeEditCache
     }
 
-    onHashChange() {
-        const visibility = window.location.hash.replace(/#\/?/, '')
+    created() {
+        this.$observables.hashChange.subscribe((hash: string) => {
+            const visibility = hash.replace(/#\/?/, '')
 
-        if (this.$store.getters[visibility]) {
-            this.visibility = visibility
-        } else {
-            window.location.hash = ''
+            if (this.$store.getters[visibility]) {
+                this.visibility = visibility
+            } else {
+                window.location.hash = ''
 
-            this.visibility = 'all'
-        }
+                this.visibility = 'all'
+            }
+        })
     }
 }
 </script>
