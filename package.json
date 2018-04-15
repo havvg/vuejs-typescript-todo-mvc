@@ -4,6 +4,7 @@
   "author": "Toni Uebernickel <tuebernickel@gmail.com>",
   "private": true,
   "scripts": {
+    "test": "./node_modules/.bin/jest",
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
@@ -20,6 +21,7 @@
     "cross-env": "^5.0.5",
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.4",
+    "jest": "^22.4.3",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.6",
     "ts-loader": "^3.1.0",

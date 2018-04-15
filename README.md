@@ -6,6 +6,9 @@
 # install dependencies
 npm install
 
+# run test suite
+npm run test
+
 # serve with hot reload at localhost:8080
 npm run dev
 
