@@ -8,6 +8,24 @@
     "dev": "cross-env NODE_ENV=development webpack-dev-server --open --hot",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules"
   },
+  "jest": {
+    "setupFiles": [
+      "jest-localstorage-mock"
+    ],
+    "moduleNameMapper": {
+      "^vue$": "vue/dist/vue.common.js"
+    },
+    "moduleFileExtensions": [
+      "js",
+      "ts",
+      "vue"
+    ],
+    "transform": {
+      "^.+\\.js$": "<rootDir>/node_modules/babel-jest",
+      "^.*\\.vue$": "<rootDir>/node_modules/vue-jest",
+      "^.*\\.ts$": "<rootDir>/node_modules/ts-jest"
+    }
+  },
   "dependencies": {
     "rxjs": "^5.5.2",
     "vue": "^2.4.4",
@@ -15,22 +33,29 @@
     "vuex": "^3.0.0"
   },
   "devDependencies": {
+    "@types/jest": "^22.2.3",
+    "@vue/test-utils": "^1.0.0-beta.16",
     "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.4",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.0",
     "cross-env": "^5.0.5",
     "css-loader": "^0.28.7",
     "file-loader": "^1.1.4",
     "jest": "^22.4.3",
+    "jest-localstorage-mock": "^2.2.0",
     "node-sass": "^4.5.3",
     "sass-loader": "^6.0.6",
+    "ts-jest": "^22.4.6",
     "ts-loader": "^3.1.0",
     "typescript": "^2.6.1",
     "vue-class-component": "^6.0.0",
+    "vue-jest": "^2.6.0",
     "vue-loader": "^13.0.5",
     "vue-property-decorator": "^6.0.0",
     "vue-template-compiler": "^2.4.4",
     "vue-ts-loader": "0.0.3",
+    "vue-typescript-jest": "^0.3.0",
     "vuex-class": "^0.3.0",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
